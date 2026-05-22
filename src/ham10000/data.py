@@ -34,7 +34,7 @@ class Ham10000Dataset(Dataset):
             
         label = self.class_to_idx[row['dx']]
         
-        return img, label
+        return img, int(label)
         
 def build_dataloaders(config):
     transform = transforms.Compose([
