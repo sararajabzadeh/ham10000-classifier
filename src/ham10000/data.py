@@ -1,7 +1,9 @@
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader, Subset
 import pandas as pd
 from PIL import Image
 from pathlib import Path
+from sklearn.model_selection import train_test_split
+from torchvision import transforms
 
 
 class Ham10000Dataset(Dataset):
@@ -34,4 +36,35 @@ class Ham10000Dataset(Dataset):
         
         return img, label
         
+def build_dataloaders(config):
+    transform = transforms.Compose([
+        transforms.Resize((config.image_size, config.image_size)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+    dataset = Ham10000Dataset(
+        csv_path="data/HAM10000_metadata.csv",
+        image_dir="data",
+        transform=transform,
+    )
     
+    lesion_ids = dataset.data['lesion_id'].unique()
+    train_ids, val_ids = train_test_split(
+        lesion_ids,
+        train_size=config.train_test_split,
+        random_state=config.seed,
+    )
+    
+    train_mask = dataset.data['lesion_id'].isin(train_ids)
+    train_idx = dataset.data.index[train_mask].to_list()
+    val_idx = dataset.data.index[~train_mask].to_list()
+    
+    train_loader = DataLoader(Subset(dataset, train_idx),
+                              batch_size=config.batch_size,
+                              shuffle=True
+                              )
+    val_loader = DataLoader(Subset(dataset, val_idx),
+                            batch_size=config.batch_size,
+                            shuffle=False)
+    
+    return train_loader, val_loader, dataset.class_to_idx
