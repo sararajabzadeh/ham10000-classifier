@@ -1,3 +1,4 @@
+from fontTools import config
 from torch.utils.data import Dataset, DataLoader, Subset
 import pandas as pd
 from PIL import Image
@@ -39,37 +40,46 @@ class Ham10000Dataset(Dataset):
         return img, int(label)
         
 def build_dataloaders(config):
-    transform = transforms.Compose([
+    train_transform = transforms.Compose([
+        transforms.RandomResizedCrop(config.image_size, scale=(0.8, 1.0)),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(degrees=20),
+        transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                            std=[0.229, 0.224, 0.225]),
+    ])
+
+    val_transform = transforms.Compose([
         transforms.Resize((config.image_size, config.image_size)),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                            std=[0.229, 0.224, 0.225]),
     ])
-    dataset = Ham10000Dataset(
-        csv_path="data/HAM10000_metadata.csv",
-        image_dir="data",
-        transform=transform,
-    )
+    chosen_train_transform = train_transform if config.use_augmentation else val_transform
+    train_ds = Ham10000Dataset(config.metadata_csv, config.data_dir, transform=chosen_train_transform)
+    val_ds   = Ham10000Dataset(config.metadata_csv, config.data_dir, transform=val_transform)
     
-    lesion_ids = dataset.data['lesion_id'].unique()
+    lesion_ids = train_ds.data["lesion_id"].unique()
     train_ids, val_ids = train_test_split(
         lesion_ids,
         train_size=config.train_test_split,
         random_state=config.seed,
     )
     
-    train_mask = dataset.data['lesion_id'].isin(train_ids)
-    train_idx = dataset.data.index[train_mask].to_list()
-    val_idx = dataset.data.index[~train_mask].to_list()
-    
-    train_loader = DataLoader(Subset(dataset, train_idx),
-                              batch_size=config.batch_size,
-                              shuffle=True
-                              )
-    val_loader = DataLoader(Subset(dataset, val_idx),
-                            batch_size=config.batch_size,
-                            shuffle=False)
-    
-    return train_loader, val_loader, dataset.class_to_idx
+    lesion_ids = train_ds.data["lesion_id"].unique()
+    train_ids, val_ids = train_test_split(
+        lesion_ids, train_size=config.train_test_split, random_state=config.seed
+    )
+    train_mask = train_ds.data["lesion_id"].isin(train_ids)
+    train_idx = train_ds.data.index[train_mask].tolist()
+    val_idx   = train_ds.data.index[~train_mask].tolist()
+
+    train_loader = DataLoader(Subset(train_ds, train_idx),
+                              batch_size=config.batch_size, shuffle=True)
+    val_loader   = DataLoader(Subset(val_ds, val_idx),
+                              batch_size=config.batch_size, shuffle=False)
+    return train_loader, val_loader, train_ds.class_to_idx
 
 
 def compute_class_weights(train_loader, num_classes, device):

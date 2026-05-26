@@ -26,6 +26,7 @@ data/
 Icon
 .vscode/
 classification_report_*.txt
+classification_report2_*.txt
 # Thumbnails
 ._*
 

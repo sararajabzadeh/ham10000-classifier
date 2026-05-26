@@ -14,6 +14,9 @@ class Config:
     learning_rate: float
     optimizer: str
     use_class_weights: bool
+    use_augmentation: bool
+    metadata_csv: str
+    data_dir: str
     
 def load_config(path):
     with open(path) as f:
