@@ -24,8 +24,8 @@ data/
 *.png
 # Icon must end with two \r
 Icon
-
-
+.vscode/
+classification_report_*.txt
 # Thumbnails
 ._*
 

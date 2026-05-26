@@ -13,3 +13,5 @@ batch_size: 32
 num_epochs: 10
 learning_rate: 0.0001
 optimizer: "adam"
+
+use_class_weights: true

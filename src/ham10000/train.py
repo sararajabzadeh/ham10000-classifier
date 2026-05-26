@@ -5,7 +5,7 @@ from ham10000.models import build_model
 import torch.nn as nn
 import argparse
 from ham10000.utils import load_config
-from ham10000.data import build_dataloaders
+from ham10000.data import build_dataloaders, compute_class_weights
 from tqdm import tqdm
 
 
@@ -61,7 +61,11 @@ def train(config, train_loader, val_loader):
                           else 'mps' if torch.backends.mps.is_available() else 'cpu')
     
     model = build_model(config.num_classes).to(device)
-    criterion = nn.CrossEntropyLoss()
+    if config.use_class_weights:
+        class_weights = compute_class_weights(train_loader, config.num_classes, device)
+        criterion = nn.CrossEntropyLoss(weight=class_weights)
+    else:
+        criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     
     best_val_loss = float('inf')

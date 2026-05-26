@@ -13,6 +13,7 @@ class Config:
     num_epochs: int
     learning_rate: float
     optimizer: str
+    use_class_weights: bool
     
 def load_config(path):
     with open(path) as f:

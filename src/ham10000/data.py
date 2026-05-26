@@ -4,7 +4,9 @@ from PIL import Image
 from pathlib import Path
 from sklearn.model_selection import train_test_split
 from torchvision import transforms
-
+from sklearn.utils.class_weight import compute_class_weight
+import torch
+import numpy as np
 
 class Ham10000Dataset(Dataset):
     def __init__(self, csv_path, image_dir, transform=None):
@@ -68,3 +70,16 @@ def build_dataloaders(config):
                             shuffle=False)
     
     return train_loader, val_loader, dataset.class_to_idx
+
+
+def compute_class_weights(train_loader, num_classes, device):
+    subset = train_loader.dataset
+    full_df = subset.dataset.data
+    class_to_idx = subset.dataset.class_to_idx
+    train_labels = full_df.iloc[list(subset.indices)]['dx'].map(class_to_idx).to_numpy()
+    weights = compute_class_weight(
+        class_weight='balanced',
+        classes=np.arange(num_classes),
+        y=train_labels
+    )
+    return torch.tensor(weights, dtype=torch.float32).to(device)

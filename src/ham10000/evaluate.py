@@ -61,9 +61,16 @@ def main():
     report = classification_report(all_labels, all_preds, target_names=class_names)
     print(report)
     
-    save_confusion_matrix(all_labels, all_preds, class_names, "confusion_matrix.png")
+    suffix = "weighted" if config.use_class_weights else "baseline"
+    report_path = f"classification_report_{suffix}.txt"
+    with open(report_path, "w") as f:
+        f.write(report)
+    print(f"Saved {report_path}")
+    
     save_confusion_matrix(all_labels, all_preds, class_names,
-                          "confusion_matrix_normalized.png", normalize="true")
+                      f"confusion_matrix_{suffix}.png")
+    save_confusion_matrix(all_labels, all_preds, class_names,
+                        f"confusion_matrix_{suffix}_normalized.png", normalize="true")
 
 if __name__ == "__main__":
     main()
