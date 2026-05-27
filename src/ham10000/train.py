@@ -8,10 +8,10 @@ from ham10000.utils import load_config
 from ham10000.data import build_dataloaders, compute_class_weights
 from tqdm import tqdm
 import wandb
-from tests.test_data import config
 
 
 def set_seed(seed):
+    """Seed Python, NumPy, and PyTorch RNGs for reproducible runs."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -19,6 +19,8 @@ def set_seed(seed):
     
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
+    """Run one training epoch and return the average training loss."""
+    
     model.train()
     running_loss = 0.0
     
@@ -39,6 +41,8 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
 
 def validate(model, loader, criterion, device):
+    """Evaluate on the val loader, returning (avg_loss, accuracy)."""
+    
     model.eval()
     running_loss = 0.0
     correct = 0
@@ -59,6 +63,17 @@ def validate(model, loader, criterion, device):
 
 
 def train(config, train_loader, val_loader):
+    """Train the model and save the best checkpoint by validation loss.
+
+    Sets seeds, builds the model/optimizer/loss (with optional class
+    weighting per config.use_class_weights), then loops over config.num_epochs,
+    logging metrics each epoch and saving the lowest-val-loss model to disk.
+    Logs to Weights & Biases when config.use_wandb is set.
+
+    Returns:
+        The trained model.
+    """
+    
     set_seed(config.seed)
     device = torch.device('cuda' if torch.cuda.is_available()
                           else 'mps' if torch.backends.mps.is_available() else 'cpu')

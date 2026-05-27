@@ -1,4 +1,3 @@
-from fontTools import config
 from torch.utils.data import Dataset, DataLoader, Subset
 import pandas as pd
 from PIL import Image
@@ -10,7 +9,22 @@ import torch
 import numpy as np
 
 class Ham10000Dataset(Dataset):
+    """PyTorch Dataset for the HAM10000 skin lesion images.
+
+    Reads the metadata CSV, maps each row to its image file (handling the
+    two image folders the dataset ships in), and returns (image_tensor,
+    label_int) pairs. String diagnoses are mapped to integer labels via a
+    deterministic, sorted class_to_idx mapping built at construction.
+    """
+    
     def __init__(self, csv_path, image_dir, transform=None):
+        """
+        Args:
+            csv_path: Path to HAM10000_metadata.csv.
+            image_dir: Directory containing the two HAM10000 image folders.
+            transform: Optional torchvision transform applied to each image.
+        """
+        
         self.data = pd.read_csv(csv_path)
         self.image_dir = Path(image_dir)
         self.transform = transform
@@ -26,6 +40,8 @@ class Ham10000Dataset(Dataset):
         return len(self.data)
     
     def __getitem__(self, idx):
+        """Return (image_tensor, label_int) for the row at position idx."""
+        
         row = self.data.iloc[idx]
         path = self.image_paths.get(row['image_id'])
         if path is None:
@@ -40,6 +56,18 @@ class Ham10000Dataset(Dataset):
         return img, int(label)
         
 def build_dataloaders(config):
+    """Build train and val DataLoaders with a lesion-level split.
+
+    Splits on lesion_id (not image_id) so that multiple images of the same
+    lesion never appear in both train and val, which would leak information.
+    The split is seeded with config.seed for reproducibility. Training data
+    is augmented when config.use_augmentation is set; validation data always
+    uses a deterministic resize + normalize pipeline.
+
+    Returns:
+        (train_loader, val_loader, class_to_idx)
+    """
+    
     train_transform = transforms.Compose([
         transforms.RandomResizedCrop(config.image_size, scale=(0.8, 1.0)),
         transforms.RandomHorizontalFlip(p=0.5),
@@ -83,6 +111,17 @@ def build_dataloaders(config):
 
 
 def compute_class_weights(train_loader, num_classes, device):
+    """Compute inverse-frequency class weights from the training split.
+
+    Uses sklearn's 'balanced' scheme so rarer classes receive larger weights,
+    counteracting the dataset's heavy imbalance. Weights are computed from the
+    training labels only (never val) to avoid leakage, and returned as a float
+    tensor on the given device for use in nn.CrossEntropyLoss(weight=...).
+
+    Returns:
+        A 1-D tensor of length num_classes, ordered by class index.
+    """
+    
     subset = train_loader.dataset
     full_df = subset.dataset.data
     class_to_idx = subset.dataset.class_to_idx

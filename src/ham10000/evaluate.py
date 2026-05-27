@@ -9,6 +9,8 @@ from ham10000.data import build_dataloaders
 
 
 def get_predictions(model, loader, device):
+    """Run inference over the loader, returning (all_labels, all_preds) lists."""
+    
     model.eval()
     all_preds = []
     all_labels = []
@@ -22,6 +24,8 @@ def get_predictions(model, loader, device):
     return all_preds, all_labels
 
 def load_model(config, checkpoint_path, device):
+    """Rebuild the model architecture and load saved weights from checkpoint."""
+    
     model = build_model(config.num_classes)
     model.load_state_dict(torch.load(checkpoint_path, map_location=device))
     model.to(device)

@@ -20,6 +20,7 @@ class Config:
     use_wandb: bool
     
 def load_config(path):
+    """Load a YAML config file into a typed Config dataclass."""
     with open(path) as f:
         data = yaml.safe_load(f)
         return Config(**data)
