@@ -7,6 +7,8 @@ import argparse
 from ham10000.utils import load_config
 from ham10000.data import build_dataloaders, compute_class_weights
 from tqdm import tqdm
+import wandb
+from tests.test_data import config
 
 
 def set_seed(seed):
@@ -55,6 +57,7 @@ def validate(model, loader, criterion, device):
     accuracy = correct / len(loader.dataset)
     return avg_loss, accuracy
 
+
 def train(config, train_loader, val_loader):
     set_seed(config.seed)
     device = torch.device('cuda' if torch.cuda.is_available()
@@ -68,6 +71,22 @@ def train(config, train_loader, val_loader):
         criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     
+    if config.use_wandb:
+        run_name = f"lr{config.learning_rate}_w{config.use_class_weights}_aug{config.use_augmentation}"
+        wandb.init(
+            project="ham10000-classifier",
+            name=run_name,
+            config={
+                "learning_rate": config.learning_rate,
+                "batch_size": config.batch_size,
+                "num_epochs": config.num_epochs,
+                "use_class_weights": config.use_class_weights,
+                "use_augmentation": config.use_augmentation,
+                "model_name": config.model_name,
+            },
+        )
+    
+    
     best_val_loss = float('inf')
     for epoch in range(config.num_epochs):
         train_loss = train_one_epoch(model, train_loader, criterion, optimizer, device)
@@ -77,10 +96,21 @@ def train(config, train_loader, val_loader):
               f'train_loss={train_loss:.4f} | '
               f'val_loss={val_loss:.4f} | val_acc={val_acc:.4f}')
         
+        if config.use_wandb:
+            wandb.log({
+                "train_loss": train_loss,
+                "val_loss": val_loss,
+                "val_acc": val_acc,
+                "epoch": epoch + 1,
+            })
+        
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             torch.save(model.state_dict(), 'best_model.pth')
             print(f'Best model saved with val_loss={val_loss:.4f}')
+    
+    if config.use_wandb:
+        wandb.finish()    
         
     return model
 

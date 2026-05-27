@@ -29,7 +29,7 @@ classification_report_*.txt
 classification_report2_*.txt
 # Thumbnails
 ._*
-
+wandb/
 # Files that might appear in the root of a volume
 .DocumentRevisions-V100
 .fseventsd

@@ -20,3 +20,5 @@ optimizer: "adam"
 use_class_weights: true
 
 use_augmentation: true
+
+use_wandb: true

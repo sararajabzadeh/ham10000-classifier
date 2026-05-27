@@ -17,6 +17,7 @@ class Config:
     use_augmentation: bool
     metadata_csv: str
     data_dir: str
+    use_wandb: bool
     
 def load_config(path):
     with open(path) as f:
