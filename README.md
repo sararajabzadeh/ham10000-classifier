@@ -2,6 +2,10 @@
 
 A ResNet18-based classifier for seven types of pigmented skin lesions, with class-imbalance handling, image augmentation, experiment tracking, and Grad-CAM interpretability.
 
+## Live demo
+**[Try it on Hugging Face Spaces →](https://huggingface.co/spaces/srajabzz/ham10000-classifier)**
+Upload a dermatoscopic image and see the model's predictions. Educational demo only.
+
 ## Motivation
 
 Skin cancer is among the most common cancers worldwide, and melanoma — though a small fraction of cases — causes the majority of skin-cancer deaths. It is highly treatable when caught early, which makes reliable visual screening valuable, especially where access to dermatologists is limited. [HAM10000](https://doi.org/10.7910/DVN/DBW86T) ("Human Against Machine with 10,000 training images") is a benchmark dataset of 10,015 dermatoscopic images spanning seven diagnostic categories. This project trains and interrogates a classifier on it — not as a clinical tool, but as an end-to-end demonstration of a sound, reproducible ML pipeline on a realistically messy medical dataset.
