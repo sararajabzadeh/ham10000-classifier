@@ -3,7 +3,7 @@
 A ResNet18-based classifier for seven types of pigmented skin lesions, with class-imbalance handling, image augmentation, experiment tracking, and Grad-CAM interpretability.
 
 ## Live demo
-**[Try it on Hugging Face Spaces →](https://huggingface.co/spaces/srajabzz/ham10000-classifier)**
+**[Try it on Hugging Face Spaces](https://huggingface.co/spaces/srajabzz/ham10000-classifier)**
 Upload a dermatoscopic image and see the model's predictions. Educational demo only.
 
 ## Motivation
