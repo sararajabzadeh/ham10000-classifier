@@ -1,5 +1,8 @@
 # HAM10000 Skin Lesion Classifier
 
+![Tests](https://github.com/sararajabzadeh/ham10000-classifier/actions/workflows/test.yml/badge.svg)
+
+
 A ResNet18-based classifier for seven types of pigmented skin lesions, with class-imbalance handling, image augmentation, experiment tracking, and Grad-CAM interpretability.
 
 ## Live demo

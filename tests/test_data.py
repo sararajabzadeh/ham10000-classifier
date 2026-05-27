@@ -5,6 +5,8 @@ import torch
 from ham10000.models import build_model
 from ham10000.data import build_dataloaders
 from ham10000.utils import load_config
+import os
+DATA_AVAILABLE = os.path.exists("data/HAM10000_metadata.csv")
 
 @pytest.fixture
 def dataset():
@@ -22,18 +24,22 @@ def dataset():
 @pytest.fixture
 def config():
     return load_config("configs/baseline.yaml")
-    
+
+@pytest.mark.skipif(not DATA_AVAILABLE, reason="dataset not available in CI")
 def test_dataset_length(dataset):
     assert len(dataset) == 10015
 
+@pytest.mark.skipif(not DATA_AVAILABLE, reason="dataset not available in CI")
 def test_dataset_shape(dataset):
     img, label = dataset[0]
     assert img.shape == (3, 224, 224)
     assert isinstance(label, int)
-    
+
+@pytest.mark.skipif(not DATA_AVAILABLE, reason="dataset not available in CI")
 def test_labels(dataset):
     set(dataset.class_to_idx.values()) == set(range(7))
 
+@pytest.mark.skipif(not DATA_AVAILABLE, reason="dataset not available in CI")
 def test_no_lesion_leakage(config):
     train_loader, val_loader, _ = build_dataloaders(config)
     full = train_loader.dataset.dataset.data
