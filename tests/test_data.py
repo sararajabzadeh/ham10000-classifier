@@ -6,7 +6,7 @@ from ham10000.models import build_model
 from ham10000.data import build_dataloaders
 from ham10000.utils import load_config
 import os
-DATA_AVAILABLE = os.path.exists("data/HAM10000_metadata.csv")
+DATA_AVAILABLE = os.path.exists("data/ham10000_metadata.csv")
 
 @pytest.fixture
 def dataset():
@@ -47,7 +47,7 @@ def test_no_lesion_leakage(config):
     val_lesions = set(full.iloc[list(val_loader.dataset.indices)]['lesion_id'])
     assert train_lesions.isdisjoint(val_lesions)
 
-def test_model_output_shape(dataset):
+def test_model_output_shape():
     model = build_model(num_classes=7)
     model.eval()
     dummy = torch.randn(1, 3, 224, 224)
